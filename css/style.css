@@ -491,6 +491,7 @@ body {
   border-radius: 16px;
   border: 1px dashed rgba(180, 150, 100, 0.45);
   transition: opacity 0.3s ease, transform 0.3s ease, border-color 0.15s, box-shadow 0.15s;
+  touch-action: none;
 }
 
 /* Success: dramatic celebration flash */
@@ -552,14 +553,35 @@ body {
 }
 
 .word-block.sortable-chosen {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  opacity: 0.3;
+  box-shadow: none;
 }
 
 .word-block.sortable-drag {
-  transform: scale(1.08);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
-  opacity: 0.9;
-  z-index: 999;
+  transform: none;
+  box-shadow: none;
+  opacity: 1;
+}
+
+/* SortableJS forceFallback mirror — follows touch point on mobile */
+.sortable-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px !important;
+  height: 50px !important;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #3e2a1f;
+  background: linear-gradient(145deg, #fef7e0, #f0e4c8);
+  border: 1px solid #c3aa6b;
+  border-radius: 11px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  opacity: 0.95;
+  z-index: 9999;
+  pointer-events: none;
+  transform: none !important;
+  transition: none !important;
 }
 
 /* ---------- Action Buttons ---------- */

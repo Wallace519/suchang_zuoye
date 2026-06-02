@@ -43,9 +43,31 @@
   let isSolved = false;
   let revealedHints = [];
 
+  // ---------- Image Preloader ----------
+  function preloadImages() {
+    const urls = [];
+
+    // Game page background
+    urls.push('image/次界面背景.png');
+
+    // All 12 inkstone images
+    inkstones.forEach(function (stone) {
+      urls.push(stone.imageUrl);
+    });
+
+    // Create Image objects to trigger browser cache
+    urls.forEach(function (url) {
+      var img = new Image();
+      img.src = url;
+    });
+  }
+
   // ---------- Init ----------
   function init() {
     AudioEngine.init();
+
+    // Preload all game images while user is on the intro page
+    preloadImages();
 
     soundToggle.addEventListener('click', () => {
       AudioEngine.toggle();
@@ -363,9 +385,8 @@
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
       dragClass: 'sortable-drag',
-      touchStartThreshold: 5,
-      delay: 0,
-      delayOnTouchOnly: true,
+      forceFallback: true,
+      touchStartThreshold: 0,
 
       onStart: function () {
         AudioEngine.playDragStart();
