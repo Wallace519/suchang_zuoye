@@ -565,7 +565,7 @@ body {
 
 /* SortableJS forceFallback mirror — follows touch point on mobile */
 .sortable-fallback {
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   width: 50px !important;
@@ -578,10 +578,9 @@ body {
   border-radius: 11px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
   opacity: 0.95;
-  z-index: 9999;
+  z-index: 9999 !important;
   pointer-events: none;
-  transform: none !important;
-  transition: none !important;
+  /* DO NOT override transform — SortableJS uses it to position the mirror */
 }
 
 /* ---------- Action Buttons ---------- */

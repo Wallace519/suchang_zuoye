@@ -379,6 +379,12 @@
 
   // ---------- SortableJS with Auto-Detect ----------
   function initSortable() {
+    // Destroy previous instance to avoid stale listeners
+    if (sortableInstance) {
+      sortableInstance.destroy();
+      sortableInstance = null;
+    }
+
     sortableInstance = new Sortable(wordBlocks, {
       animation: 150,
       easing: 'cubic-bezier(0.2, 0, 0, 1)',
