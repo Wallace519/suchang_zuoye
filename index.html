@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>容载万方——肇庆博物馆藏砚沉吟</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Google Fonts: Noto Serif SC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- SortableJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- ==================== Page 1: Museum Intro ==================== -->
+    <section id="page-intro" class="page page-intro">
+      <div class="page-intro__content">
+        <!-- Museum Logo with frame -->
+        <div class="intro-logo-frame">
+          <img class="intro-logo" src="image/博物馆图标.png" alt="肇庆市博物馆">
+        </div>
+
+        <!-- Title & Subtitle -->
+        <h1 class="intro-title">容载万方：肇庆博物馆藏砚沉吟</h1>
+        <p class="intro-subtitle">—— 谢志峰先生捐赠端砚珍品特展 ——</p>
+
+        <!-- Museum Interior Image -->
+        <div class="intro-img-card">
+          <img src="image/装饰图/博物馆内室大壁.jpg" alt="肇庆市博物馆内室">
+        </div>
+
+        <!-- Museum Description -->
+        <div class="intro-desc-card">
+          <p>肇庆市博物馆，踞宋城墙朝天门内侧，为国家二级博物馆。新馆于二〇二一年五月开放，建筑面积逾万方，纳千年端州文脉于其间。兹"容载万方"特展，以馆藏谢志峰先生捐赠十二方端砚珍品为核，邀君临砚沉吟，于指间拼字之间，体悟端砚大美、文士精神与千年制砚技艺之不朽传承。</p>
+        </div>
+
+        <!-- Enter Button -->
+        <button class="btn-enter" id="btn-enter">叩砚问名，且试慧心</button>
+      </div>
+
+      <!-- Decoration: Bodhisattva wood carving (full clarity, no blur) -->
+      <img class="intro-decoration" src="image/装饰图/菩萨木雕.png" alt="" aria-hidden="true">
+    </section>
+
+    <!-- ==================== Page 2: Game ==================== -->
+    <section id="page-game" class="page page-game">
+      <div class="page-game__content">
+        <!-- Header -->
+        <div class="game-header">
+          <img class="game-header__logo" src="image/博物馆图标.png" alt="肇庆市博物馆">
+          <span class="game-header__title">容载万方</span>
+          <div class="header-buttons">
+            <div class="header-btn" id="sound-toggle" title="音效开关">🔊</div>
+            <div class="header-btn" id="music-toggle" title="背景音乐">🎵</div>
+            <div class="header-btn" id="tutorial-btn" title="游玩教程">❓</div>
+          </div>
+        </div>
+
+        <!-- Progress + Navigation -->
+        <div class="game-nav-row">
+          <div class="nav-arrow nav-arrow--disabled" id="nav-prev" title="上一方砚台">◀</div>
+          <div class="game-progress" id="game-progress">第 <span id="progress-current">1</span> / 12 方 端砚</div>
+          <div class="nav-arrow" id="nav-next" title="下一方砚台">▶</div>
+        </div>
+
+        <!-- Inkstone Display -->
+        <div class="inkstone-area">
+          <div class="inkstone-card" id="inkstone-card">
+            <img class="inkstone-card__img" id="inkstone-img" src="" alt="端砚">
+            <p class="inkstone-card__appearance" id="appearance-text"></p>
+            <p class="inkstone-card__hint-guide" id="hint-guide-text">💡 轻触砚图，逐层解锁三重提示</p>
+          </div>
+          <!-- Hint Bulbs -->
+          <div class="hint-bulbs" id="hint-bulbs">
+            <div class="hint-bulb" data-hint="0" title="提示一">💡</div>
+            <div class="hint-bulb" data-hint="1" title="提示二">💡</div>
+            <div class="hint-bulb" data-hint="2" title="提示三">💡</div>
+          </div>
+        </div>
+
+        <!-- Puzzle Area -->
+        <div class="puzzle-area">
+          <p class="puzzle-title">移字归序，以正其名</p>
+          <div class="word-blocks" id="word-blocks">
+            <!-- Word blocks injected by JS -->
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-check" id="btn-check">叩名定字</button>
+            <button class="btn btn-reset" id="btn-reset">散字重排</button>
+            <button class="btn btn-skip" id="btn-skip">略过</button>
+          </div>
+        </div>
+
+        <!-- Culture Card (expandable) -->
+        <div class="culture-card" id="culture-card">
+          <div class="culture-card__inner">
+            <div class="culture-card__title">📜 砚台品鉴</div>
+            <div class="culture-card__name" id="culture-name"></div>
+            <div class="culture-card__meta" id="culture-meta"></div>
+            <div class="culture-card__desc" id="culture-desc"></div>
+          </div>
+        </div>
+
+        <!-- Next Button (hidden until success) -->
+        <button class="btn btn-next" id="btn-next" style="display:none;">览下一方 →</button>
+
+        <!-- Footer -->
+        <div class="game-footer">
+          馆藏谢志峰先生捐赠端砚珍品<br>
+		  容载万方  砚以载道<br>
+          肇庆市博物馆
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Background Music -->
+  <audio id="bgm-audio" src="静庭慢闲 .mp3" loop preload="auto"></audio>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
