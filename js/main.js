@@ -391,18 +391,21 @@
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
       dragClass: 'sortable-drag',
-      forceFallback: true,
-      touchStartThreshold: 0,
+      touchStartThreshold: 1,
+      delay: 0,
+      delayOnTouchOnly: true,
 
       onStart: function () {
+        // Disable CSS transitions on blocks during drag — eliminates lag
+        wordBlocks.classList.add('is-dragging');
         AudioEngine.playDragStart();
-        // Save block order on drag start for state persistence
         saveCurrentState();
       },
 
       onEnd: function () {
+        // Re-enable CSS transitions
+        wordBlocks.classList.remove('is-dragging');
         AudioEngine.playPlace();
-        // Save after each move
         saveCurrentState();
 
         if (!isSolved) {
