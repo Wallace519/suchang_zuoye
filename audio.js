@@ -23,11 +23,15 @@ const AudioEngine = (() => {
       audioContext = null;
     }
 
-    // Load preference from localStorage
-    const saved = localStorage.getItem('inkstone_audio_enabled');
-    if (saved !== null) {
-      audioEnabled = saved === 'true';
-      updateToggleIcon();
+    // Load preference from localStorage (wrapped — Tracking Prevention may block)
+    try {
+      const saved = localStorage.getItem('inkstone_audio_enabled');
+      if (saved !== null) {
+        audioEnabled = saved === 'true';
+        updateToggleIcon();
+      }
+    } catch (e) {
+      // localStorage blocked by browser tracking prevention — use default
     }
 
     // Init BGM
@@ -59,9 +63,13 @@ const AudioEngine = (() => {
 
     bgmAudio.volume = 0.35;
 
-    const saved = localStorage.getItem('inkstone_bgm_enabled');
-    if (saved !== null) {
-      bgmEnabled = saved === 'true';
+    try {
+      const saved = localStorage.getItem('inkstone_bgm_enabled');
+      if (saved !== null) {
+        bgmEnabled = saved === 'true';
+      }
+    } catch (e) {
+      // localStorage blocked — use default
     }
 
     updateMusicToggleIcon();
@@ -75,7 +83,7 @@ const AudioEngine = (() => {
 
   function toggleBgm() {
     bgmEnabled = !bgmEnabled;
-    localStorage.setItem('inkstone_bgm_enabled', bgmEnabled.toString());
+    try { localStorage.setItem('inkstone_bgm_enabled', bgmEnabled.toString()); } catch (e) {}
     updateMusicToggleIcon();
 
     if (!bgmAudio) return;
@@ -202,7 +210,7 @@ const AudioEngine = (() => {
   // ---------- Toggle ----------
   function toggle() {
     audioEnabled = !audioEnabled;
-    localStorage.setItem('inkstone_audio_enabled', audioEnabled.toString());
+    try { localStorage.setItem('inkstone_audio_enabled', audioEnabled.toString()); } catch (e) {}
     updateToggleIcon();
     if (audioEnabled) {
       playTestSound();
