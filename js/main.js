@@ -8,8 +8,10 @@
   'use strict';
 
   // ---------- DOM Elements ----------
+  const pageStory = document.getElementById('page-story');
   const pageIntro = document.getElementById('page-intro');
   const pageGame = document.getElementById('page-game');
+  const btnStoryEnter = document.getElementById('btn-story-enter');
   const btnEnter = document.getElementById('btn-enter');
   const soundToggle = document.getElementById('sound-toggle');
   const musicToggle = document.getElementById('music-toggle');
@@ -82,6 +84,11 @@
       showTutorial();
     });
 
+    btnStoryEnter.addEventListener('click', () => {
+      AudioEngine.playButton();
+      switchToIntroPage();
+    });
+
     btnEnter.addEventListener('click', () => {
       AudioEngine.playButton();
       showTutorial(() => {
@@ -140,6 +147,17 @@
   }
 
   // ---------- Page Switching ----------
+  function switchToIntroPage() {
+    pageStory.classList.add('page-transition-out');
+    setTimeout(() => {
+      pageStory.style.display = 'none';
+      pageStory.classList.remove('page-transition-out');
+      pageIntro.style.display = 'flex';
+      pageIntro.classList.add('page-transition-in');
+      setTimeout(() => pageIntro.classList.remove('page-transition-in'), 350);
+    }, 300);
+  }
+
   function switchToGamePage() {
     pageIntro.classList.add('page-transition-out');
     setTimeout(() => {
@@ -712,7 +730,8 @@
       title: '🎉 容载万方，十二方尽览',
       html: `
         <p style="font-size:1rem;line-height:1.8;margin:0.5rem 0;">
-          君已遍览<b>十二方</b>端砚珍品，一一叩名定字。
+          十二方端砚，十二段往事。<br>
+          君已一一<b>叩其真名</b>，聆其心语。
         </p>
         <p style="font-size:0.85rem;color:#8b6f47;margin-top:0.5rem;">
           谢志峰先生捐赠 · 肇庆市博物馆藏
@@ -720,7 +739,9 @@
         <p style="font-size:0.8rem;color:#8b7355;margin-top:0.75rem;line-height:1.7;">
           端溪之石，千年不朽；文人之砚，万载存真。<br>
           容载万方，砚以载道。<br>
-          诚邀亲临肇庆市博物馆，于砚池之间沉吟古今。
+          然砚事千年，岂止于此？<br>
+          诚邀亲临肇庆市博物馆，<br>
+          于砚池之间，续写你与端砚的<b>未完之章</b>。
         </p>
       `,
       icon: 'success',

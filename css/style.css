@@ -47,6 +47,143 @@ body {
 }
 
 /* ============================================
+   Page 0: Story Intro (主界面背景 · 深色蒙层)
+   ============================================ */
+.page-story {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: url('../image/主界面背景.png') center/cover no-repeat;
+}
+
+/* Darker glassmorphism — sense of entering a dimly lit museum hall */
+.page-story::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 16, 10, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1;
+}
+
+.page-story__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Story text lines container */
+.story-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 340px;
+}
+
+/* Each line: hidden initially, animated in */
+.story-line {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: rgba(254, 247, 224, 0.9);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(14px);
+  animation: storyFadeIn 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* Sequential delays for each line */
+.story-line:nth-child(1)  { animation-delay: 0.15s; }
+.story-line:nth-child(2)  { animation-delay: 0.35s; }
+.story-line:nth-child(3)  { animation-delay: 0.55s; }
+.story-line:nth-child(4)  { animation-delay: 0.75s; }
+.story-line:nth-child(5)  { animation-delay: 1.05s; }
+.story-line:nth-child(6)  { animation-delay: 1.35s; }
+.story-line:nth-child(7)  { animation-delay: 1.55s; }
+.story-line:nth-child(8)  { animation-delay: 1.75s; }
+.story-line:nth-child(9)  { animation-delay: 2.1s; }
+.story-line:nth-child(10) { animation-delay: 2.35s; }
+.story-line:nth-child(11) { animation-delay: 2.55s; }
+.story-line:nth-child(12) { animation-delay: 2.75s; }
+
+/* Break line — lighter, italic, acts as a breath */
+.story-line--break {
+  font-size: 0.82rem;
+  color: rgba(210, 180, 120, 0.85);
+  font-style: italic;
+  letter-spacing: 0.14em;
+  margin: 0.3rem 0;
+}
+
+/* Final line — bolder, golden, the climax */
+.story-line--final {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #e0c878;
+  letter-spacing: 0.12em;
+  margin-top: 0.25rem;
+}
+
+@keyframes storyFadeIn {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Story enter button — appears after all text */
+.btn-story-enter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  height: 48px;
+  padding: 0 2rem;
+  background: linear-gradient(135deg, #ba8b3a, #c3aa6b);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.12em;
+  border: none;
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(186, 139, 58, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  animation: storyFadeIn 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation-delay: 3.2s;
+}
+
+.btn-story-enter:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 10px rgba(186, 139, 58, 0.25);
+}
+
+/* Reduced motion: show everything immediately */
+@media (prefers-reduced-motion: reduce) {
+  .story-line,
+  .btn-story-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================================
    Page 1: Museum Intro (主界面背景)
    ============================================ */
 .page-intro {
