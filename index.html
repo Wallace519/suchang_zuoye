@@ -46,7 +46,38 @@
       </div>
     </section>
 
-    <!-- ==================== Page 1: Museum Intro ==================== -->
+    <!-- ==================== Page 1: Hard Mode Selection ==================== -->
+    <section id="page-hardmode" class="page page-hardmode" style="display:none;">
+      <div class="page-hardmode__content">
+        <h2 class="hardmode-title">选择挑战难度</h2>
+
+        <div class="hardmode-card" id="mode-normal">
+          <div class="hardmode-card__icon">📖</div>
+          <div class="hardmode-card__name">寻常模式</div>
+          <div class="hardmode-card__desc">
+            三重提示 · 移字归序<br>
+            适合初探端砚之美
+          </div>
+          <span class="hardmode-card__check">&#10003;</span>
+        </div>
+
+        <div class="hardmode-card" id="mode-hard">
+          <div class="hardmode-card__icon">⚔️</div>
+          <div class="hardmode-card__name">困难模式</div>
+          <div class="hardmode-card__desc">
+            仅一重提示 · 混杂乱字<br>
+            设拼字框 · 真砚者之试
+          </div>
+          <span class="hardmode-card__check">&#10003;</span>
+        </div>
+
+        <p class="hardmode-warning">⚠ 选择后游戏过程中不可更改<br>想更改模式需退出并重新扫码进入</p>
+
+        <button class="btn-hardmode-confirm" id="btn-hardmode-confirm" disabled>确认选择，步入砚廊</button>
+      </div>
+    </section>
+
+    <!-- ==================== Page 2: Museum Intro ==================== -->
     <section id="page-intro" class="page page-intro" style="display:none;">
       <div class="page-intro__content">
         <!-- Museum Logo with frame -->
@@ -115,10 +146,25 @@
 
         <!-- Puzzle Area -->
         <div class="puzzle-area">
-          <p class="puzzle-title">移字归序，以正其名</p>
+          <p class="puzzle-title" id="puzzle-title-text">移字归序，以正其名</p>
           <div class="word-blocks" id="word-blocks">
             <!-- Word blocks injected by JS -->
           </div>
+
+          <!-- Hard Mode: Source + Assembly -->
+          <div class="hardmode-puzzle" id="hardmode-puzzle" style="display:none;">
+            <p class="puzzle-subtitle">从源字区拖入拼字框，依序排列</p>
+            <div class="source-blocks" id="source-blocks">
+              <!-- Source characters (correct + distractors) injected by JS -->
+            </div>
+            <div class="puzzle-assembly">
+              <span class="assembly-label">拼字框</span>
+              <div class="assembly-blocks" id="assembly-blocks">
+                <!-- Dropped characters arranged by user -->
+              </div>
+            </div>
+          </div>
+
           <div class="action-buttons">
             <button class="btn btn-check" id="btn-check">叩名定字</button>
             <button class="btn btn-reset" id="btn-reset">散字重排</button>

@@ -9,9 +9,13 @@
 
   // ---------- DOM Elements ----------
   const pageStory = document.getElementById('page-story');
+  const pageHardmode = document.getElementById('page-hardmode');
   const pageIntro = document.getElementById('page-intro');
   const pageGame = document.getElementById('page-game');
   const btnStoryEnter = document.getElementById('btn-story-enter');
+  const modeNormal = document.getElementById('mode-normal');
+  const modeHard = document.getElementById('mode-hard');
+  const btnHardmodeConfirm = document.getElementById('btn-hardmode-confirm');
   const btnEnter = document.getElementById('btn-enter');
   const soundToggle = document.getElementById('sound-toggle');
   const musicToggle = document.getElementById('music-toggle');
@@ -35,6 +39,11 @@
   const cultureMeta = document.getElementById('culture-meta');
   const cultureDesc = document.getElementById('culture-desc');
 
+  const hardmodePuzzle = document.getElementById('hardmode-puzzle');
+  const sourceBlocks = document.getElementById('source-blocks');
+  const assemblyBlocks = document.getElementById('assembly-blocks');
+  const puzzleTitleText = document.getElementById('puzzle-title-text');
+
   const bulbEls = hintBulbs.querySelectorAll('.hint-bulb');
 
   // ---------- Per-Inkstone State ----------
@@ -44,6 +53,13 @@
   let sortableInstance = null;
   let isSolved = false;
   let revealedHints = [];
+
+  // ---------- Hard Mode State ----------
+  let isHardMode = false;
+  let sortableSource = null;
+  let sortableAssembly = null;
+  let selectedMode = null;        // 'normal' | 'hard'
+  let ALL_CHARS = [];             // union of all nameChars, computed once
 
   // ---------- Image Preloader ----------
   function preloadImages() {
@@ -64,8 +80,32 @@
     });
   }
 
+  // ---------- Hard Mode Helpers ----------
+  function computeAllChars() {
+    const set = new Set();
+    inkstones.forEach(function (stone) {
+      stone.nameChars.forEach(function (ch) { set.add(ch); });
+    });
+    ALL_CHARS = Array.from(set);
+  }
+
+  function getDistractorsForInkstone(data, count) {
+    count = count || 3;
+    var currentSet = new Set(data.nameChars);
+    var candidates = ALL_CHARS.filter(function (ch) { return !currentSet.has(ch); });
+    // Shuffle candidates
+    for (var i = candidates.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = candidates[i];
+      candidates[i] = candidates[j];
+      candidates[j] = tmp;
+    }
+    return candidates.slice(0, Math.min(count, candidates.length));
+  }
+
   // ---------- Init ----------
   function init() {
+    computeAllChars();
     AudioEngine.init();
 
     // Preload all game images while user is on the intro page
@@ -86,6 +126,30 @@
 
     btnStoryEnter.addEventListener('click', () => {
       AudioEngine.playButton();
+      switchToHardmodePage();
+    });
+
+    // --- Mode Selection ---
+    modeNormal.addEventListener('click', () => {
+      AudioEngine.playButton();
+      selectedMode = 'normal';
+      modeNormal.classList.add('hardmode-card--selected');
+      modeHard.classList.remove('hardmode-card--selected');
+      btnHardmodeConfirm.disabled = false;
+    });
+
+    modeHard.addEventListener('click', () => {
+      AudioEngine.playButton();
+      selectedMode = 'hard';
+      modeHard.classList.add('hardmode-card--selected');
+      modeNormal.classList.remove('hardmode-card--selected');
+      btnHardmodeConfirm.disabled = false;
+    });
+
+    btnHardmodeConfirm.addEventListener('click', () => {
+      if (!selectedMode) return;
+      AudioEngine.playButton();
+      isHardMode = (selectedMode === 'hard');
       switchToIntroPage();
     });
 
@@ -118,9 +182,20 @@
 
   // ---------- Tutorial ----------
   function showTutorial(onConfirm) {
-    Swal.fire({
-      title: '📜 游玩方法',
-      html: `
+    var tutorialTitle = isHardMode ? '📜 游玩方法（困难模式）' : '📜 游玩方法';
+    var tutorialHtml = isHardMode ? `
+        <div style="text-align:left;font-size:0.9rem;line-height:2;padding:0.25rem 0.5rem;">
+          <p>🖼️ <b>观察砚台</b>：每方端砚展示图</p>
+          <p>🧩 <b>择字入框</b>：从源字区将正确字块拖入<b>拼字框</b>，按正确顺序排列<br>
+             <span style="color:#b87333;font-size:0.8rem;">⚠ 源字区混有额外字块，需辨清真伪</span></p>
+          <p>💡 <b>唯一提示</b>：轻触砚台图片，仅可解锁<b>1次</b>提示</p>
+          <p>✅ <b>叩名定字</b>：拼字框内排满正确字序即解锁砚台品鉴</p>
+          <p>⏭️ <b>览下一方</b>：通过后可继续探索下一方端砚</p>
+          <p style="margin-top:0.5rem;color:#8b6f47;text-align:center;">
+            困难模式下共12方端砚，<b>慧眼辨真</b>！
+          </p>
+        </div>
+      ` : `
         <div style="text-align:left;font-size:0.9rem;line-height:2;padding:0.25rem 0.5rem;">
           <p>🖼️ <b>观察砚台</b>：每方端砚展示图</p>
           <p>🧩 <b>移字归序</b>：拖拽字块重新排列，还原砚台全名</p>
@@ -131,7 +206,10 @@
             共12方端砚珍品，尽览<b>"容载万方"</b>！
           </p>
         </div>
-      `,
+      `;
+    Swal.fire({
+      title: tutorialTitle,
+      html: tutorialHtml,
       confirmButtonText: onConfirm ? '开始游戏' : '知道了',
       showClass: { popup: 'animate__animated animate__fadeIn' },
       customClass: {
@@ -139,7 +217,7 @@
         title: 'swal2-title',
         confirmButton: 'swal2-confirm'
       }
-    }).then((result) => {
+    }).then(function (result) {
       if (result.isConfirmed && onConfirm) {
         onConfirm();
       }
@@ -147,11 +225,22 @@
   }
 
   // ---------- Page Switching ----------
-  function switchToIntroPage() {
+  function switchToHardmodePage() {
     pageStory.classList.add('page-transition-out');
-    setTimeout(() => {
+    setTimeout(function () {
       pageStory.style.display = 'none';
       pageStory.classList.remove('page-transition-out');
+      pageHardmode.style.display = 'flex';
+      pageHardmode.classList.add('page-transition-in');
+      setTimeout(function () { pageHardmode.classList.remove('page-transition-in'); }, 350);
+    }, 300);
+  }
+
+  function switchToIntroPage() {
+    pageHardmode.classList.add('page-transition-out');
+    setTimeout(() => {
+      pageHardmode.style.display = 'none';
+      pageHardmode.classList.remove('page-transition-out');
       pageIntro.style.display = 'flex';
       pageIntro.classList.add('page-transition-in');
       setTimeout(() => pageIntro.classList.remove('page-transition-in'), 350);
@@ -188,6 +277,8 @@
     // ---- Fade out current content ----
     wordBlocks.style.opacity = '0';
     wordBlocks.style.transform = 'translateY(6px)';
+    hardmodePuzzle.style.opacity = '0';
+    hardmodePuzzle.style.transform = 'translateY(6px)';
     hintBulbs.style.opacity = '0';
     appearanceText.style.opacity = '0';
     hintGuideText.style.opacity = '0';
@@ -196,13 +287,13 @@
     inkstoneImg.style.opacity = '0';
     inkstoneImg.style.transform = 'scale(0.96)';
 
-    setTimeout(() => {
+    setTimeout(function () {
       // Swap image
       inkstoneImg.src = data.imageUrl;
       inkstoneImg.alt = data.fullName;
 
       // Fade image in
-      requestAnimationFrame(() => {
+      requestAnimationFrame(function () {
         inkstoneImg.style.opacity = '1';
         inkstoneImg.style.transform = 'scale(1)';
       });
@@ -212,44 +303,82 @@
       appearanceText.style.opacity = '1';
       hintGuideText.style.opacity = '1';
 
+      // Show/hide correct puzzle area based on mode
+      if (isHardMode) {
+        wordBlocks.style.display = 'none';
+        hardmodePuzzle.style.display = 'block';
+        puzzleTitleText.textContent = '择字入框，拼其真名';
+      } else {
+        wordBlocks.style.display = '';
+        hardmodePuzzle.style.display = 'none';
+        puzzleTitleText.textContent = '移字归序，以正其名';
+      }
+
       // Check if this inkstone was previously solved
       if (saved && saved.solved) {
         // Restore solved state
         isSolved = true;
-        revealedHints = [...(saved.revealedHints || [])];
+        revealedHints = [].concat(saved.revealedHints || []);
 
-        // Restore word blocks in correct order
-        restoreWordBlocks(data.nameChars);
-
-        // Restore UI state
-        restoreSolvedUI(data);
-      } else if (saved && !saved.solved) {
-        // Restore partial progress (hints + block order)
-        isSolved = false;
-        revealedHints = [...(saved.revealedHints || [])];
-
-        if (saved.blocksOrder && saved.blocksOrder.length) {
-          restoreBlockOrder(saved.blocksOrder);
+        if (isHardMode) {
+          // Hard mode solved: show correct chars in assembly, clear source
+          restoreHardAssembly(data.nameChars);
+          sourceBlocks.innerHTML = '';
+          assemblyBlocks.classList.add('solved');
+          sourceBlocks.classList.add('solved');
         } else {
-          renderWordBlocks(data.nameChars);
+          restoreWordBlocks(data.nameChars);
         }
 
-        restoreUnsolvedUI();
-        initSortable();
+        restoreSolvedUI(data);
+      } else if (saved && !saved.solved) {
+        // Restore partial progress
+        isSolved = false;
+        revealedHints = [].concat(saved.revealedHints || []);
+
+        if (isHardMode) {
+          if (saved.sourceOrder && saved.sourceOrder.length) {
+            restoreBlockOrderTo(saved.sourceOrder, sourceBlocks);
+          } else {
+            renderHardPuzzle(data);
+          }
+          if (saved.assemblyOrder && saved.assemblyOrder.length) {
+            restoreBlockOrderTo(saved.assemblyOrder, assemblyBlocks);
+          } else {
+            assemblyBlocks.innerHTML = '';
+          }
+          restoreUnsolvedUI();
+          initHardSortable();
+        } else {
+          if (saved.blocksOrder && saved.blocksOrder.length) {
+            restoreBlockOrder(saved.blocksOrder);
+          } else {
+            renderWordBlocks(data.nameChars);
+          }
+          restoreUnsolvedUI();
+          initSortable();
+        }
       } else {
         // Fresh state
         isSolved = false;
         revealedHints = [];
 
         resetUnsolvedUI();
-        renderWordBlocks(data.nameChars);
-        initSortable();
+        if (isHardMode) {
+          renderHardPuzzle(data);
+          initHardSortable();
+        } else {
+          renderWordBlocks(data.nameChars);
+          initSortable();
+        }
       }
 
       // ---- Fade in new puzzle content ----
-      setTimeout(() => {
+      setTimeout(function () {
         wordBlocks.style.opacity = '1';
         wordBlocks.style.transform = '';
+        hardmodePuzzle.style.opacity = '1';
+        hardmodePuzzle.style.transform = '';
         hintBulbs.style.opacity = '1';
         wordBlocks.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 60);
@@ -258,13 +387,25 @@
 
   // ---------- Save / Restore State ----------
   function saveCurrentState() {
-    const blocks = wordBlocks.querySelectorAll('.word-block');
-    const blocksOrder = Array.from(blocks).map(b => b.textContent);
-    inkstoneStates[currentIndex] = {
-      solved: isSolved,
-      revealedHints: [...revealedHints],
-      blocksOrder: blocksOrder
-    };
+    if (isHardMode) {
+      var srcBlocks = sourceBlocks.querySelectorAll('.word-block');
+      var asmBlocks = assemblyBlocks.querySelectorAll('.word-block');
+      inkstoneStates[currentIndex] = {
+        solved: isSolved,
+        revealedHints: [].concat(revealedHints),
+        blocksOrder: [].concat(inkstones[currentIndex].nameChars),
+        sourceOrder: Array.from(srcBlocks).map(function (b) { return b.textContent; }),
+        assemblyOrder: Array.from(asmBlocks).map(function (b) { return b.textContent; })
+      };
+    } else {
+      var blocks = wordBlocks.querySelectorAll('.word-block');
+      var blocksOrder = Array.from(blocks).map(function (b) { return b.textContent; });
+      inkstoneStates[currentIndex] = {
+        solved: isSolved,
+        revealedHints: [].concat(revealedHints),
+        blocksOrder: blocksOrder
+      };
+    }
   }
 
   function restoreWordBlocks(correctChars) {
@@ -292,6 +433,173 @@
       wordBlocks.appendChild(block);
     });
     wordBlocks.classList.remove('solved');
+  }
+
+  // ---------- Hard Mode: Restore & Render ----------
+  function restoreHardAssembly(chars) {
+    assemblyBlocks.innerHTML = '';
+    chars.forEach(function (ch, idx) {
+      var block = document.createElement('div');
+      block.className = 'word-block';
+      block.textContent = ch;
+      block.dataset.char = ch;
+      block.dataset.index = idx;
+      assemblyBlocks.appendChild(block);
+    });
+  }
+
+  function restoreBlockOrderTo(order, container) {
+    container.innerHTML = '';
+    order.forEach(function (ch, idx) {
+      var block = document.createElement('div');
+      block.className = 'word-block';
+      block.textContent = ch;
+      block.dataset.char = ch;
+      block.dataset.index = idx;
+      container.appendChild(block);
+    });
+  }
+
+  function renderHardPuzzle(data) {
+    var distractors = getDistractorsForInkstone(data, 3);
+    var pool = data.nameChars.concat(distractors);
+
+    // Shuffle pool
+    for (var i = pool.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = pool[i];
+      pool[i] = pool[j];
+      pool[j] = tmp;
+    }
+
+    sourceBlocks.innerHTML = '';
+    pool.forEach(function (ch, idx) {
+      var block = document.createElement('div');
+      block.className = 'word-block';
+      block.textContent = ch;
+      block.dataset.char = ch;
+      block.dataset.index = idx;
+      sourceBlocks.appendChild(block);
+    });
+
+    assemblyBlocks.innerHTML = '';
+    sourceBlocks.classList.remove('solved');
+    assemblyBlocks.classList.remove('solved');
+  }
+
+  // ---------- Hard Mode: Dual SortableJS ----------
+  function initHardSortable() {
+    if (sortableSource) { sortableSource.destroy(); sortableSource = null; }
+    if (sortableAssembly) { sortableAssembly.destroy(); sortableAssembly = null; }
+
+    var groupConfig = { name: 'hardmode-group', pull: true, put: true };
+
+    sortableSource = new Sortable(sourceBlocks, {
+      group: groupConfig,
+      animation: 150,
+      easing: 'cubic-bezier(0.2, 0, 0, 1)',
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      dragClass: 'sortable-drag',
+      touchStartThreshold: 1,
+      delay: 0,
+      delayOnTouchOnly: true,
+
+      onStart: function () {
+        AudioEngine.playDragStart();
+        saveCurrentState();
+      },
+
+      onEnd: function () {
+        AudioEngine.playPlace();
+        saveCurrentState();
+        if (!isSolved) {
+          clearTimeout(sortableSource._hardCheckTimer);
+          sortableSource._hardCheckTimer = setTimeout(autoCheckHard, 200);
+        }
+      }
+    });
+
+    sortableAssembly = new Sortable(assemblyBlocks, {
+      group: groupConfig,
+      animation: 150,
+      easing: 'cubic-bezier(0.2, 0, 0, 1)',
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      dragClass: 'sortable-drag',
+      touchStartThreshold: 1,
+      delay: 0,
+      delayOnTouchOnly: true,
+
+      onStart: function () {
+        AudioEngine.playDragStart();
+        saveCurrentState();
+      },
+
+      onEnd: function () {
+        AudioEngine.playPlace();
+        saveCurrentState();
+        if (!isSolved) {
+          clearTimeout(sortableAssembly._hardCheckTimer);
+          sortableAssembly._hardCheckTimer = setTimeout(autoCheckHard, 200);
+        }
+      }
+    });
+  }
+
+  // ---------- Hard Mode: Validation ----------
+  function autoCheckHard() {
+    if (isSolved) return;
+    var data = inkstones[currentIndex];
+    var blocks = assemblyBlocks.querySelectorAll('.word-block');
+    var assemblyChars = Array.from(blocks).map(function (b) { return b.textContent; });
+    var currentOrder = assemblyChars.join('');
+    var correctOrder = data.nameChars.join('');
+
+    if (currentOrder === correctOrder && assemblyChars.length === data.nameChars.length) {
+      onCorrectAnswer(data);
+    }
+  }
+
+  function handleCheckHard() {
+    AudioEngine.playButton();
+    if (isSolved) return;
+
+    var data = inkstones[currentIndex];
+    var blocks = assemblyBlocks.querySelectorAll('.word-block');
+    var assemblyChars = Array.from(blocks).map(function (b) { return b.textContent; });
+    var currentOrder = assemblyChars.join('');
+    var correctOrder = data.nameChars.join('');
+
+    if (currentOrder === correctOrder && assemblyChars.length === data.nameChars.length) {
+      onCorrectAnswer(data);
+    } else if (assemblyChars.length !== data.nameChars.length) {
+      AudioEngine.playError();
+      Swal.fire({
+        title: '字未入框',
+        text: '已将 ' + assemblyChars.length + '/' + data.nameChars.length + ' 字置入拼字框，请移入正确的字块并归序。',
+        icon: 'info',
+        confirmButtonText: '继续',
+        customClass: {
+          popup: 'swal2-popup',
+          title: 'swal2-title',
+          confirmButton: 'swal2-confirm'
+        }
+      });
+    } else {
+      AudioEngine.playError();
+      Swal.fire({
+        title: '尚差毫厘',
+        text: '字序未合，请再运慧心调之。',
+        icon: 'info',
+        confirmButtonText: '再试',
+        customClass: {
+          popup: 'swal2-popup',
+          title: 'swal2-title',
+          confirmButton: 'swal2-confirm'
+        }
+      });
+    }
   }
 
   function restoreSolvedUI(data) {
@@ -448,6 +756,10 @@
 
   // ---------- Manual Check ----------
   function handleCheck() {
+    if (isHardMode) {
+      handleCheckHard();
+      return;
+    }
     AudioEngine.playButton();
     if (isSolved) return;
 
@@ -481,11 +793,24 @@
     AudioEngine.playSuccess();
 
     // Lock word blocks
-    wordBlocks.classList.add('solved');
+    if (isHardMode) {
+      assemblyBlocks.classList.add('solved');
+      sourceBlocks.classList.add('solved');
+      // Destroy hard mode sortable instances
+      if (sortableSource) { sortableSource.destroy(); sortableSource = null; }
+      if (sortableAssembly) { sortableAssembly.destroy(); sortableAssembly = null; }
+    } else {
+      wordBlocks.classList.add('solved');
+      // Destroy Sortable
+      if (sortableInstance) {
+        sortableInstance.destroy();
+        sortableInstance = null;
+      }
+    }
 
     // Flash animation
     wordBlocks.classList.add('success-flash');
-    setTimeout(() => wordBlocks.classList.remove('success-flash'), 850);
+    setTimeout(function () { wordBlocks.classList.remove('success-flash'); }, 850);
 
     // Glow on check button
     btnCheck.classList.add('btn-check--glow');
@@ -497,14 +822,8 @@
     // Update button states
     btnCheck.disabled = true;
     btnReset.textContent = '重新挑战';
-    btnReset.disabled = false;   // enabled — now acts as "re-challenge"
+    btnReset.disabled = false;
     btnSkip.style.display = 'none';
-
-    // Destroy Sortable
-    if (sortableInstance) {
-      sortableInstance.destroy();
-      sortableInstance = null;
-    }
 
     // Save state
     saveCurrentState();
@@ -574,18 +893,28 @@
           revealedHints = [];
 
           resetUnsolvedUI();
-          renderWordBlocks(data.nameChars);
-
-          if (sortableInstance) sortableInstance.destroy();
-          initSortable();
+          if (isHardMode) {
+            renderHardPuzzle(data);
+            initHardSortable();
+          } else {
+            renderWordBlocks(data.nameChars);
+            if (sortableInstance) sortableInstance.destroy();
+            initSortable();
+          }
         }
       });
     } else {
       // "散字重排" mode: just re-shuffle blocks
-      renderWordBlocks(data.nameChars);
-
-      if (sortableInstance) sortableInstance.destroy();
-      initSortable();
+      if (isHardMode) {
+        renderHardPuzzle(data);
+        if (sortableSource) sortableSource.destroy();
+        if (sortableAssembly) sortableAssembly.destroy();
+        initHardSortable();
+      } else {
+        renderWordBlocks(data.nameChars);
+        if (sortableInstance) sortableInstance.destroy();
+        initSortable();
+      }
 
       // Save re-shuffled state
       saveCurrentState();
@@ -634,12 +963,17 @@
 
     AudioEngine.playButton();
 
-    const nextHintIdx = [0, 1, 2].find(i => !revealedHints.includes(i));
+    var hintPool = isHardMode ? [0] : [0, 1, 2];
+    var nextHintIdx = hintPool.find(function (i) { return !revealedHints.includes(i); });
 
     if (nextHintIdx === undefined) {
+      var exhaustedTitle = isHardMode ? '💡 唯一提示已尽' : '💡 三重提示已尽';
+      var exhaustedText = isHardMode
+        ? '唯一提示已奉上，请移字入框，拼其真名。\n\n' + data.tip
+        : '三则提示俱已奉上，请移字归序。\n\n' + data.tip;
       Swal.fire({
-        title: '💡 三重提示已尽',
-        text: '三则提示俱已奉上，请移字归序。\n\n' + data.tip,
+        title: exhaustedTitle,
+        text: exhaustedText,
         confirmButtonText: '领命',
         customClass: {
           popup: 'swal2-popup',
@@ -659,8 +993,9 @@
     updateHintGuideText();
     saveCurrentState();
 
+    var hintTotal = isHardMode ? 1 : 3;
     Swal.fire({
-      title: `💡 提示 ${revealedHints.length} / 3`,
+      title: '💡 提示 ' + revealedHints.length + ' / ' + hintTotal,
       text: hintText,
       confirmButtonText: '领受',
       showClass: { popup: 'animate__animated animate__fadeIn' },
@@ -689,11 +1024,14 @@
   }
 
   function updateHintGuideText() {
-    const remaining = 3 - revealedHints.length;
+    var totalHints = isHardMode ? 1 : 3;
+    var remaining = totalHints - revealedHints.length;
     if (remaining > 0) {
-      hintGuideText.textContent = `💡 已得提示 ${revealedHints.length}/3，尚可再触砚图 ${remaining} 次`;
+      hintGuideText.textContent = '💡 已得提示 ' + revealedHints.length + '/' + totalHints + '，尚可再触砚图 ' + remaining + ' 次';
     } else {
-      hintGuideText.textContent = '💡 三重提示已尽，可点击亮起的灯泡回看';
+      hintGuideText.textContent = isHardMode
+        ? '💡 唯一提示已尽，可点击灯泡回看'
+        : '💡 三重提示已尽，可点击亮起的灯泡回看';
     }
   }
 
